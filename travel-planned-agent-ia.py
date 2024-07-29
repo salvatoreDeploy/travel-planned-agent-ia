@@ -1,3 +1,4 @@
+import json
 import os
 
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
@@ -10,6 +11,8 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableSequence
 import bs4
+
+OPENAI_API_KEY = os.environ['OPENAI_API_KEY']
 
 # Camada: Request Client
 
@@ -83,9 +86,20 @@ def getResponse(query, llm):
 # Camada: Lambda Function
 
 def handler_lambda(event, context):
-  query = event.get("question")
+  # query = event.get("question")
+  body = json.loads(event.get('body', {}))
+  query = body.get('question', 'Parametro question não fornecido')
   response = getResponse(query, llm).content
-  return {"body": response, "status": 200}
+  return {
+    "statusCode": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": json.dumps({
+      "message": "Tarefa concluída com sucesso",
+      "details": response
+    }), 
+  }
 
 # print(getResponse(query, llm).content)
 
